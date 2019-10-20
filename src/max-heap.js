@@ -8,29 +8,60 @@ class MaxHeap {
 	}
 
 	push(data, priority) {
-		this.insertNode(new Node(data, priority));
-		this.shiftNodeUp(new Node(data, priority));
+		var node = new Node(data,priority);
+		this.insertNode(node);
+		this.shiftNodeUp(node);
 		this.length++;
 	}
 
 	pop() {
-		
+		if(!this.isEmpty()){
+			var detached = this.detachRoot();
+			this.restoreRootFromLastInsertedNode(detached);
+			this.shiftNodeDown(this.root);
+			return detached.data;
+		}
 	}
 
 	detachRoot() {
-		
+		if (this.parentNodes.indexOf(this.root) != -1) {
+			this.parentNodes.shift();
+		}
+		var r = this.root;
+		this.root = null;
+		this.length--;
+		return r;
 	}
 
 	restoreRootFromLastInsertedNode(detached) {
-		
+		if(this.isEmpty()) return;
+			var lastN = this.parentNodes.pop();
+			if(lastN != null){
+				var parent = lastN.parent;
+				this.root = lastN;
+				if(parent != null){
+					lastN.remove();
+					if (parent.right == null && parent.left != null && parent !== detached) {
+						this.parentNodes.unshift(parent);
+					}
+				}
+			}
+			if(detached.left != null){
+				lastN.appendChild(detached.left);
+			}
+			if(detached.right != null){
+				lastN.appendChild(detached.right);
+				return;
+			} 
+			this.parentNodes.unshift(lastN);
 	}
 
 	size() {
-		
+		return this.length;
 	}
 
 	isEmpty() {
-		
+		return this.length===0;
 	}
 
 	clear() {
@@ -40,17 +71,17 @@ class MaxHeap {
 	}
 
 	insertNode(node) {
-		if(this.root==null){
+		if(this.root == null){
 			this.root = node;
 			this.parentNodes.push(node);
 			return;
 		}
-		else if(this.parentNodes[0].left==null){
+		else if(this.parentNodes[0].left == null){
 			this.parentNodes[0].appendChild(node);
 			this.parentNodes.push(node);
 			return;
 		}
-		else if(this.parentNodes[0].right==null){
+		else if(this.parentNodes[0].right == null){
 			this.parentNodes[0].appendChild(node);
 			this.parentNodes.push(node);
 			this.parentNodes.shift();
@@ -58,7 +89,7 @@ class MaxHeap {
 	}
 
 	shiftNodeUp(node) {
-		if(node.parent!=null&&node.priority>node.parent.priority){
+		if(node.parent != null && node.priority > node.parent.priority){
 			if (node.parent == this.root) {
 				this.root = node;
 			}
@@ -76,7 +107,30 @@ class MaxHeap {
 	}
 
 	shiftNodeDown(node) {
-		
+		if (node == null || node.left == null) {
+			return;
+		}
+		if(node.left != null){
+			var nodeToShift = node.left;
+			if (node.right != null && nodeToShift.priority <= node.right.priority){
+				nodeToShift = node.right;
+			}
+			if(nodeToShift.priority > node.priority){
+				const nodeToShiftInd = this.parentNodes.indexOf(nodeToShift);
+				const nodeInd = this.parentNodes.indexOf(node);
+				if (node === this.root) {
+					this.root = nodeToShift;
+				}
+				if (nodeInd == -1) {
+					this.parentNodes[nodeToShiftInd] = node;
+				} else {
+					this.parentNodes[nodeInd] = nodeToShift;
+					this.parentNodes[nodeToShiftInd] = node;
+				}
+				nodeToShift.swapWithParent();
+       			this.shiftNodeDown(node);
+			}
+		}
 	}
 }
 
